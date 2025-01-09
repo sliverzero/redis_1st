@@ -1,5 +1,6 @@
 package hellojpa.domain;
 
+import hellojpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Getter
-public class Theater {
+public class Theater extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

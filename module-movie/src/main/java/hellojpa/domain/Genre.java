@@ -1,11 +1,12 @@
 package hellojpa.domain;
 
+import hellojpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
 @Getter
-public class Genre {
+public class Genre extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
