@@ -13,6 +13,6 @@ public class Genre extends BaseEntity {
     @Column(name = "genre_id")
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 10)
     private String name; // 장르 이름
 }

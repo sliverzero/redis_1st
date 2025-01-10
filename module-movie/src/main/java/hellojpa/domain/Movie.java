@@ -19,7 +19,7 @@ public class Movie extends BaseEntity {
     @Column(name = "movie_id")
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String title; // 영화 제목
 
     @Enumerated(EnumType.STRING)
