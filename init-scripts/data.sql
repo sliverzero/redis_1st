@@ -1,3 +1,40 @@
+CREATE TABLE movie (
+    movie_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(50) NOT NULL UNIQUE,
+    rating VARCHAR(255) NOT NULL,
+    release_date DATE NOT NULL,
+    thumbnail VARCHAR(255) NOT NULL,
+    running_time INT NOT NULL,
+    genre_id BIGINT NOT NULL
+)CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE genre (
+    genre_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(10) NOT NULL UNIQUE
+)CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE theater (
+    theater_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(20) NOT NULL UNIQUE
+)CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE seat (
+    seat_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    theater_id BIGINT NOT NULL,
+    seat_row VARCHAR(255) NOT NULL,
+    seat_column INT NOT NULL,
+    FOREIGN KEY (theater_id) REFERENCES theater(theater_id)
+)CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE screening (
+    screening_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    movie_id BIGINT NOT NULL,
+    theater_id BIGINT NOT NULL,
+    start_time TIME NOT NULL,
+    FOREIGN KEY (movie_id) REFERENCES movie(movie_id),
+    FOREIGN KEY (theater_id) REFERENCES theater(theater_id)
+)CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 -- Genre 데이터 삽입
 INSERT INTO genre (name) VALUES
 ('Action'),
@@ -28,7 +65,7 @@ INSERT INTO theater (name) VALUES
 ('Theater 17'),
 ('Theater 18'),
 ('Theater 19'),
-('Theater 20')
+('Theater 20'),
 ('Theater 21'),
 ('Theater 22'),
 ('Theater 23'),
@@ -38,7 +75,7 @@ INSERT INTO theater (name) VALUES
 ('Theater 27'),
 ('Theater 28'),
 ('Theater 29'),
-('Theater 30')
+('Theater 30'),
 ('Theater 31'),
 ('Theater 32'),
 ('Theater 33'),
@@ -48,7 +85,7 @@ INSERT INTO theater (name) VALUES
 ('Theater 37'),
 ('Theater 38'),
 ('Theater 39'),
-('Theater 40')
+('Theater 40'),
 ('Theater 41'),
 ('Theater 42'),
 ('Theater 43'),
@@ -58,7 +95,7 @@ INSERT INTO theater (name) VALUES
 ('Theater 47'),
 ('Theater 48'),
 ('Theater 49'),
-('Theater 50')
+('Theater 50'),
 ('Theater 51'),
 ('Theater 52'),
 ('Theater 53'),
@@ -68,7 +105,7 @@ INSERT INTO theater (name) VALUES
 ('Theater 57'),
 ('Theater 58'),
 ('Theater 59'),
-('Theater 60')
+('Theater 60'),
 ('Theater 61'),
 ('Theater 62'),
 ('Theater 63'),
@@ -78,7 +115,7 @@ INSERT INTO theater (name) VALUES
 ('Theater 67'),
 ('Theater 68'),
 ('Theater 69'),
-('Theater 70')
+('Theater 70'),
 ('Theater 71'),
 ('Theater 72'),
 ('Theater 73'),
@@ -131,7 +168,7 @@ INSERT INTO movie (title, rating, release_date, thumbnail, running_time, genre_i
 ('영화37', 'AGE_19', '2025-01-01', 'https://xxx', 110, 1),
 ('영화38', 'RESTRICTED', '2025-01-02', 'https://xxx', 105, 2),
 ('영화39', 'AGE_19', '2025-01-05', 'https://xxx', 115, 3),
-('영화40', 'RESTRICTED', '2025-01-10', 'https://xxx', 120, 4),
+('Movie40', 'RESTRICTED', '2025-01-10', 'https://xxx', 120, 4),
 ('영화41', 'ALL', '2025-11-01', 'https://xxx', 110, 1);
 
 -- Screening 데이터 삽입
@@ -901,7 +938,7 @@ INSERT INTO seat (theater_id, seat_row, seat_column) VALUES
 (14, 'B', 1), (14, 'B', 2), (14, 'B', 3), (14, 'B', 4), (14, 'B', 5),
 (14, 'C', 1), (14, 'C', 2), (14, 'C', 3), (14, 'C', 4), (14, 'C', 5),
 (14, 'D', 1), (14, 'D', 2), (14, 'D', 3), (14, 'D', 4), (14, 'D', 5),
-(14, 'E', 1), (14, 'E', 2), (14, 'E', 3), (14, 'E', 4), (14, 'E', 5),
+(14, 'E', 1), (14, 'E', 2), (14, 'E', 3), (14, 'E', 4), (14, 'E', 5);
 
 INSERT INTO seat (theater_id, seat_row, seat_column) VALUES
 (15, 'A', 1), (15, 'A', 2), (15, 'A', 3), (15, 'A', 4), (15, 'A', 5),
@@ -999,7 +1036,7 @@ INSERT INTO seat (theater_id, seat_row, seat_column) VALUES
 (30, 'B', 1), (30, 'B', 2), (30, 'B', 3), (30, 'B', 4), (30, 'B', 5),
 (30, 'C', 1), (30, 'C', 2), (30, 'C', 3), (30, 'C', 4), (30, 'C', 5),
 (30, 'D', 1), (30, 'D', 2), (30, 'D', 3), (30, 'D', 4), (30, 'D', 5),
-(30, 'E', 1), (30, 'E', 2), (30, 'E', 3), (30, 'E', 4), (30, 'E', 5),
+(30, 'E', 1), (30, 'E', 2), (30, 'E', 3), (30, 'E', 4), (30, 'E', 5);
 
 INSERT INTO seat (theater_id, seat_row, seat_column) VALUES
 (31, 'A', 1), (31, 'A', 2), (31, 'A', 3), (31, 'A', 4), (31, 'A', 5),
