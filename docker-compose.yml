@@ -11,6 +11,8 @@ services:
       - "3307:3306"
     volumes:
       - ./init-scripts:/docker-entrypoint-initdb.d # init-scripts 폴더를 MySQL 컨테이너의 초기화 스크립트 디렉토리로 매핑
+    command:
+      - --skip-character-set-client-handshake
     networks:
       - my-network
 
