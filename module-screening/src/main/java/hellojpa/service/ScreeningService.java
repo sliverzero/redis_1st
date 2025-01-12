@@ -23,23 +23,8 @@ public class ScreeningService {
         List<Screening> currentScreenings = screeningRepository.findCurrentScreenings(todayDate);
 
         return currentScreenings.stream()
-                .map(currentScreening -> {
-                    String title = currentScreening.getMovie().getTitle();
-                    String videoRating = currentScreening.getMovie().getRating().toString();
-                    LocalDate releaseDate = currentScreening.getMovie().getReleaseDate();
-                    String thumbnail = currentScreening.getMovie().getThumbnail();
-                    int runningTime = currentScreening.getMovie().getRunningTime();
-                    String genreName = currentScreening.getMovie().getGenre().getName();
-                    String theaterName = currentScreening.getTheater().getName();
-                    LocalTime startTime = currentScreening.getStartTime();
-                    LocalTime endTime = currentScreening.getStartTime().plusMinutes(runningTime);
-
-                    return new ScreeningDto(
-                            title, videoRating, releaseDate, thumbnail,
-                            runningTime, genreName, theaterName, startTime, endTime
-                    );
-                })
-                .collect(Collectors.toList());
+                .map(ScreeningDto::of) // 정적 팩토리 메서드 호출
+                .toList();
     }
 
 }
