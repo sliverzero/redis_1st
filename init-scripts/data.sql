@@ -1,6 +1,6 @@
 CREATE TABLE movie (
     movie_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(50) NOT NULL UNIQUE,
+    title VARCHAR(50) NOT NULL,
     rating VARCHAR(255) NOT NULL,
     release_date DATE NOT NULL,
     thumbnail VARCHAR(255) NOT NULL,
@@ -10,12 +10,12 @@ CREATE TABLE movie (
 
 CREATE TABLE genre (
     genre_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(10) NOT NULL UNIQUE
+    name VARCHAR(10) NOT NULL
 )CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE theater (
     theater_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(20) NOT NULL UNIQUE
+    name VARCHAR(20) NOT NULL
 )CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE seat (

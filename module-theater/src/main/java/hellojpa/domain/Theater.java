@@ -16,7 +16,7 @@ public class Theater extends BaseEntity {
     @Column(name = "theater_id")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, length = 20)
     private String name; // 상영관 이름
 
     @OneToMany(mappedBy = "theater", cascade = CascadeType.ALL, orphanRemoval = true)
