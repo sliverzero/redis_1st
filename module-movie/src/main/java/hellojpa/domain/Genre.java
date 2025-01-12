@@ -1,18 +1,10 @@
 package hellojpa.domain;
 
-import hellojpa.BaseEntity;
-import jakarta.persistence.*;
-import lombok.Getter;
-
-@Entity
-@Getter
-public class Genre extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "genre_id")
-    private Long id;
-
-    @Column(nullable = false, length = 10)
-    private String name; // 장르 이름
+public enum Genre {
+    ACTION,
+    COMEDY,
+    DRAMA,
+    HORROR,
+    ROMANCE,
+    THRILLER
 }

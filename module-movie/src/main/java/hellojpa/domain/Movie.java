@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -35,7 +34,7 @@ public class Movie extends BaseEntity {
     @Column(nullable = false)
     private int runningTime; // 영화 러닝타임
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "genre_id", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @JoinColumn(nullable = false)
     private Genre genre; // 영화 장르
 }

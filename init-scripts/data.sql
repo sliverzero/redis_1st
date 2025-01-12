@@ -5,12 +5,7 @@ CREATE TABLE movie (
     release_date DATE NOT NULL,
     thumbnail VARCHAR(255) NOT NULL,
     running_time INT NOT NULL,
-    genre_id BIGINT NOT NULL
-)CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-
-CREATE TABLE genre (
-    genre_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(10) NOT NULL
+    genre VARCHAR(255) NOT NULL
 )CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE theater (
@@ -35,14 +30,6 @@ CREATE TABLE screening (
     FOREIGN KEY (theater_id) REFERENCES theater(theater_id)
 )CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
--- Genre 데이터 삽입
-INSERT INTO genre (name) VALUES
-('Action'),
-('Comedy'),
-('Drama'),
-('Horror'),
-('Romance'),
-('Thriller');
 
 -- Theater 데이터 삽입
 INSERT INTO theater (name) VALUES
@@ -128,48 +115,48 @@ INSERT INTO theater (name) VALUES
 ('Theater 80');
 
 -- Movie 데이터 삽입
-INSERT INTO movie (title, rating, release_date, thumbnail, running_time, genre_id) VALUES
-('영화1', 'ALL', '2024-11-01', 'https://xxx', 110, 1),
-('영화2', 'AGE_12', '2024-11-02', 'https://xxx', 115, 2),
-('영화3', 'AGE_15', '2024-11-03', 'https://xxx', 120, 3),
-('영화4', 'ALL', '2024-11-05', 'https://xxx', 105, 4),
-('영화5', 'AGE_12', '2024-11-06', 'https://xxx', 110, 5),
-('영화6', 'AGE_15', '2024-11-07', 'https://xxx', 115, 6),
-('영화7', 'AGE_12', '2024-11-08', 'https://xxx', 120, 1),
-('영화8', 'ALL', '2024-11-09', 'https://xxx', 105, 2),
-('영화9', 'AGE_12', '2024-11-10', 'https://xxx', 110, 3),
-('영화10', 'AGE_15', '2024-11-11', 'https://xxx', 115, 4),
-('영화11', 'AGE_12', '2024-11-12', 'https://xxx', 120, 5),
-('영화12', 'ALL', '2024-11-13', 'https://xxx', 110, 6),
-('영화13', 'AGE_15', '2024-11-14', 'https://xxx', 105, 1),
-('영화14', 'AGE_12', '2024-11-15', 'https://xxx', 115, 2),
-('영화15', 'ALL', '2024-11-16', 'https://xxx', 120, 3),
-('영화16', 'AGE_12', '2024-11-17', 'https://xxx', 110, 4),
-('영화17', 'AGE_15', '2024-11-18', 'https://xxx', 120, 5),
-('영화18', 'ALL', '2024-11-19', 'https://xxx', 105, 6),
-('영화19', 'AGE_12', '2024-11-20', 'https://xxx', 110, 1),
-('영화20', 'AGE_15', '2024-11-21', 'https://xxx', 115, 2),
-('영화21', 'AGE_12', '2024-12-01', 'https://xxx', 120, 3),
-('영화22', 'ALL', '2024-12-02', 'https://xxx', 105, 4),
-('영화23', 'AGE_12', '2024-12-03', 'https://xxx', 110, 5),
-('영화24', 'AGE_15', '2024-12-04', 'https://xxx', 115, 6),
-('영화25', 'AGE_12', '2024-12-05', 'https://xxx', 120, 1),
-('영화26', 'ALL', '2024-12-06', 'https://xxx', 105, 2),
-('영화27', 'AGE_15', '2024-12-07', 'https://xxx', 110, 3),
-('영화28', 'AGE_12', '2024-12-08', 'https://xxx', 115, 4),
-('영화29', 'AGE_15', '2024-12-09', 'https://xxx', 120, 5),
-('영화30', 'AGE_12', '2024-12-10', 'https://xxx', 110, 6),
-('영화31', 'AGE_19', '2024-12-15', 'https://xxx', 105, 1),
-('영화32', 'RESTRICTED', '2024-12-16', 'https://xxx', 115, 2),
-('영화33', 'AGE_19', '2024-12-17', 'https://xxx', 120, 3),
-('영화34', 'RESTRICTED', '2024-12-18', 'https://xxx', 110, 4),
-('영화35', 'AGE_19', '2024-12-19', 'https://xxx', 115, 5),
-('영화36', 'RESTRICTED', '2024-12-20', 'https://xxx', 120, 6),
-('영화37', 'AGE_19', '2025-01-01', 'https://xxx', 110, 1),
-('영화38', 'RESTRICTED', '2025-01-02', 'https://xxx', 105, 2),
-('영화39', 'AGE_19', '2025-01-05', 'https://xxx', 115, 3),
-('Movie40', 'RESTRICTED', '2025-01-10', 'https://xxx', 120, 4),
-('영화41', 'ALL', '2025-11-01', 'https://xxx', 110, 1);
+INSERT INTO movie (title, rating, release_date, thumbnail, running_time, genre) VALUES
+('영화1', 'ALL', '2024-11-01', 'https://xxx', 110, 'ACTION'),
+('영화2', 'AGE_12', '2024-11-02', 'https://xxx', 115, 'COMEDY'),
+('영화3', 'AGE_15', '2024-11-03', 'https://xxx', 120, 'DRAMA'),
+('영화4', 'ALL', '2024-11-05', 'https://xxx', 105, 'HORROR'),
+('영화5', 'AGE_12', '2024-11-06', 'https://xxx', 110, 'ROMANCE'),
+('영화6', 'AGE_15', '2024-11-07', 'https://xxx', 115, 'THRILLER'),
+('영화7', 'AGE_12', '2024-11-08', 'https://xxx', 120, 'ACTION'),
+('영화8', 'ALL', '2024-11-09', 'https://xxx', 105, 'COMEDY'),
+('영화9', 'AGE_12', '2024-11-10', 'https://xxx', 110, 'DRAMA'),
+('영화10', 'AGE_15', '2024-11-11', 'https://xxx', 115, 'HORROR'),
+('영화11', 'AGE_12', '2024-11-12', 'https://xxx', 120, 'ROMANCE'),
+('영화12', 'ALL', '2024-11-13', 'https://xxx', 110, 'THRILLER'),
+('영화13', 'AGE_15', '2024-11-14', 'https://xxx', 105, 'ACTION'),
+('영화14', 'AGE_12', '2024-11-15', 'https://xxx', 115, 'COMEDY'),
+('영화15', 'ALL', '2024-11-16', 'https://xxx', 120, 'DRAMA'),
+('영화16', 'AGE_12', '2024-11-17', 'https://xxx', 110, 'HORROR'),
+('영화17', 'AGE_15', '2024-11-18', 'https://xxx', 120, 'ROMANCE'),
+('영화18', 'ALL', '2024-11-19', 'https://xxx', 105, 'THRILLER'),
+('영화19', 'AGE_12', '2024-11-20', 'https://xxx', 110, 'ACTION'),
+('영화20', 'AGE_15', '2024-11-21', 'https://xxx', 115, 'COMEDY'),
+('영화21', 'AGE_12', '2024-12-01', 'https://xxx', 120, 'DRAMA'),
+('영화22', 'ALL', '2024-12-02', 'https://xxx', 105, 'HORROR'),
+('영화23', 'AGE_12', '2024-12-03', 'https://xxx', 110, 'ROMANCE'),
+('영화24', 'AGE_15', '2024-12-04', 'https://xxx', 115, 'THRILLER'),
+('영화25', 'AGE_12', '2024-12-05', 'https://xxx', 120, 'ACTION'),
+('영화26', 'ALL', '2024-12-06', 'https://xxx', 105, 'COMEDY'),
+('영화27', 'AGE_15', '2024-12-07', 'https://xxx', 110, 'DRAMA'),
+('영화28', 'AGE_12', '2024-12-08', 'https://xxx', 115, 'HORROR'),
+('영화29', 'AGE_15', '2024-12-09', 'https://xxx', 120, 'ROMANCE'),
+('영화30', 'AGE_12', '2024-12-10', 'https://xxx', 110, 'THRILLER'),
+('영화31', 'AGE_19', '2024-12-15', 'https://xxx', 105, 'ACTION'),
+('영화32', 'RESTRICTED', '2024-12-16', 'https://xxx', 115, 'COMEDY'),
+('영화33', 'AGE_19', '2024-12-17', 'https://xxx', 120, 'DRAMA'),
+('영화34', 'RESTRICTED', '2024-12-18', 'https://xxx', 110, 'HORROR'),
+('영화35', 'AGE_19', '2024-12-19', 'https://xxx', 115, 'ROMANCE'),
+('영화36', 'RESTRICTED', '2024-12-20', 'https://xxx', 120, 'THRILLER'),
+('영화37', 'AGE_19', '2025-01-01', 'https://xxx', 110, 'ACTION'),
+('영화38', 'RESTRICTED', '2025-01-02', 'https://xxx', 105, 'COMEDY'),
+('영화39', 'AGE_19', '2025-01-05', 'https://xxx', 115, 'DRAMA'),
+('Movie40', 'RESTRICTED', '2025-01-10', 'https://xxx', 120, 'HORROR'),
+('영화41', 'ALL', '2025-11-01', 'https://xxx', 110, 'ACTION');
 
 -- Screening 데이터 삽입
 -- 영화1 상영 데이터 (상영관 1, 2)
