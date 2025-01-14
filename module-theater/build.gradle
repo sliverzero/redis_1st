@@ -4,4 +4,7 @@ jar.enabled = true
 dependencies {
     // 공통 모듈 의존성
     implementation project(':module-common')
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 }

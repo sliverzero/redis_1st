@@ -13,6 +13,8 @@ services:
       - ./init-scripts:/docker-entrypoint-initdb.d # init-scripts 폴더를 MySQL 컨테이너의 초기화 스크립트 디렉토리로 매핑
     command:
       - --skip-character-set-client-handshake
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     networks:
       - my-network
 
