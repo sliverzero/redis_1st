@@ -1,13 +1,13 @@
 package hellojpa.dto;
 
-import hellojpa.domain.Screening;
-import hellojpa.domain.VideoRating;
+import hellojpa.domain.Movie;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -20,24 +20,19 @@ public class ScreeningDto {
     private String thumbnail;
     private int runningTime;
     private String genreName;
-    private String theaterName;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private List<TheaterScheduleDto> theaterSheduleDtoList;
 
-    public static ScreeningDto of(Screening screening){
-        String title = screening.getMovie().getTitle();
-        String videoRating = screening.getMovie().getRating().toString();
-        LocalDate releaseDate = screening.getMovie().getReleaseDate();
-        String thumbnail = screening.getMovie().getThumbnail();
-        int runningTime = screening.getMovie().getRunningTime();
-        String genreName = screening.getMovie().getGenre().toString();
-        String theaterName = screening.getTheater().getName();
-        LocalTime startTime = screening.getStartTime();
-        LocalTime endTime = screening.getStartTime().plusMinutes(runningTime);
+    public static ScreeningDto of(Movie movie, List<TheaterScheduleDto> theaterSchedule){
+        String title = movie.getTitle();
+        String videoRating = movie.getRating().toString();
+        LocalDate releaseDate = movie.getReleaseDate();
+        String thumbnail = movie.getThumbnail();
+        int runningTime = movie.getRunningTime();
+        String genreName = movie.getGenre().toString();
 
         return new ScreeningDto(
                 title, videoRating, releaseDate, thumbnail,
-                runningTime, genreName, theaterName, startTime, endTime
+                runningTime, genreName, theaterSchedule
         );
     }
 }
