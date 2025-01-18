@@ -151,10 +151,10 @@ INSERT INTO movie (title, rating, release_date, thumbnail, running_time, genre) 
 ('영화33', 'AGE_19', '2024-12-17', 'https://xxx', 120, 'DRAMA'),
 ('영화34', 'RESTRICTED', '2024-12-18', 'https://xxx', 110, 'HORROR'),
 ('영화35', 'AGE_19', '2024-12-19', 'https://xxx', 115, 'ROMANCE'),
-('영화36', 'RESTRICTED', '2024-12-20', 'https://xxx', 120, 'THRILLER'),
-('영화37', 'AGE_19', '2025-01-01', 'https://xxx', 110, 'ACTION'),
-('영화38', 'RESTRICTED', '2025-01-02', 'https://xxx', 105, 'COMEDY'),
-('영화39', 'AGE_19', '2025-01-05', 'https://xxx', 115, 'DRAMA'),
+('ToyStory4', 'ALL', '2024-12-20', 'https://xxx', 120, 'COMEDY'),
+('ToyStory3', 'ALL', '2025-01-01', 'https://xxx', 110, 'COMEDY'),
+('ToyStory2', 'ALL', '2025-01-02', 'https://xxx', 105, 'COMEDY'),
+('ToyStory1', 'ALL', '2025-01-05', 'https://xxx', 115, 'COMEDY'),
 ('Movie40', 'RESTRICTED', '2025-01-10', 'https://xxx', 120, 'HORROR'),
 ('영화41', 'ALL', '2025-11-01', 'https://xxx', 110, 'ACTION');
 

@@ -3,7 +3,6 @@ dependencies {
     implementation project(':module-common')
     implementation project(':module-screening')
 
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 }
