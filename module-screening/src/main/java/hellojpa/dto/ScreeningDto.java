@@ -5,9 +5,12 @@ import hellojpa.domain.Movie;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @NoArgsConstructor
@@ -15,24 +18,19 @@ import java.util.List;
 public class ScreeningDto {
 
     private String title;
-    private String videoRating;
+    private String rating;
     private LocalDate releaseDate;
     private String thumbnail;
     private int runningTime;
-    private String genreName;
-    private List<TheaterScheduleDto> theaterSheduleDtoList;
+    private String genre;
+    private List<TheaterScheduleDto> theaterSheduleDtoList = new ArrayList<>();
 
-    public static ScreeningDto of(Movie movie, List<TheaterScheduleDto> theaterSchedule){
-        String title = movie.getTitle();
-        String videoRating = movie.getRating().toString();
-        LocalDate releaseDate = movie.getReleaseDate();
-        String thumbnail = movie.getThumbnail();
-        int runningTime = movie.getRunningTime();
-        String genreName = movie.getGenre().toString();
-
-        return new ScreeningDto(
-                title, videoRating, releaseDate, thumbnail,
-                runningTime, genreName, theaterSchedule
-        );
+    public ScreeningDto(String title, String rating, LocalDate releaseDate, String thumbnail, int runningTime, String genre) {
+        this.title = title;
+        this.rating = rating;
+        this.releaseDate = releaseDate;
+        this.thumbnail = thumbnail;
+        this.runningTime = runningTime;
+        this.genre = genre;
     }
 }

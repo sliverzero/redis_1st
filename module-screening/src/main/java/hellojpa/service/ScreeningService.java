@@ -3,6 +3,7 @@ package hellojpa.service;
 import hellojpa.domain.Movie;
 import hellojpa.domain.Screening;
 import hellojpa.dto.ScreeningDto;
+import hellojpa.dto.SearchCondition;
 import hellojpa.dto.TheaterScheduleDto;
 import hellojpa.dto.TimeScheduleDto;
 import hellojpa.repository.ScreeningRepository;
@@ -19,43 +20,38 @@ public class ScreeningService {
 
     private final ScreeningRepository screeningRepository;
 
-    public List<ScreeningDto> findCurrentScreenings() {
+    public List<ScreeningDto> findCurrentScreenings(LocalDate todayDate, SearchCondition searchCondition) {
 
-        LocalDate todayDate = LocalDate.now();
-        List<Screening> currentScreenings = screeningRepository.findCurrentScreenings(todayDate); // 오늘 날짜 기준 상영되는 영화 정보
+        List<ScreeningDto> screeningDtos = screeningRepository.findCurrentScreenings(todayDate, searchCondition);
 
-        return currentScreenings.stream()
-                .collect(Collectors.groupingBy(Screening::getMovie)) // 영화별 그룹화
-                .entrySet().stream()
-                .map(entry -> {
-                    Movie movie = entry.getKey();
-                    List<TheaterScheduleDto> theaterScheduleDtos = extractTheaterScheduleDto(entry.getValue());
+        // screeningDtos에 상영관과 시간 스케줄을 추가
+        addTheaterScheduleDtoToScreenings(screeningDtos);
 
-                    return ScreeningDto.of(movie, theaterScheduleDtos);
-                })
-                .sorted(Comparator.comparing(ScreeningDto::getReleaseDate).reversed()) // 최근 개봉일 순 정렬
-                .collect(Collectors.toList());
+        return screeningDtos;
     }
 
-    // screening -> TheaterScheduleDto
-    private List<TheaterScheduleDto> extractTheaterScheduleDto(List<Screening> screenings) {
-        return screenings.stream()
-                .collect(Collectors.groupingBy(Screening::getTheater))
-                .entrySet().stream()
-                .map(entry -> {
-                    List<TimeScheduleDto> timeScheduleDtos = extractTimeScheduleDto(entry.getValue());
+    private void addTheaterScheduleDtoToScreenings(List<ScreeningDto> screeningDtos) {
 
-                    return TheaterScheduleDto.of(entry.getKey(), timeScheduleDtos);
-                })
-                .collect(Collectors.toList());
+        for (ScreeningDto screeningDto : screeningDtos) {
+            // 상영관 스케줄 조회
+            List<TheaterScheduleDto> theaterScheduleDtos = screeningRepository.findTheaterScheduleDtoByMovieTitle(screeningDto.getTitle());
+
+            // 상영관마다 상영 스케줄 삽입
+            Map<String, List<TimeScheduleDto>> theaterSchedulesMap = new HashMap<>();
+            for (TheaterScheduleDto theaterScheduleDto : theaterScheduleDtos) {
+                String theaterName = theaterScheduleDto.getName();
+                theaterSchedulesMap.putIfAbsent(theaterName, new ArrayList<>());
+                theaterSchedulesMap.get(theaterName).addAll(theaterScheduleDto.getTimeScheduleDtoList());
+            }
+
+            // theaterSchedulesMap -> finalTheaterScheduleDtos
+            List<TheaterScheduleDto> finalTheaterScheduleDtos = new ArrayList<>();
+            for (Map.Entry<String, List<TimeScheduleDto>> entry : theaterSchedulesMap.entrySet()) {
+                finalTheaterScheduleDtos.add(new TheaterScheduleDto(entry.getKey(), entry.getValue()));
+            }
+
+            screeningDto.getTheaterSheduleDtoList().clear();
+            screeningDto.getTheaterSheduleDtoList().addAll(finalTheaterScheduleDtos);
+        }
     }
-
-    // screening -> TimeScheduleDto
-    private List<TimeScheduleDto> extractTimeScheduleDto(List<Screening> screenings) {
-        return screenings.stream()
-                .sorted(Comparator.comparing(Screening::getStartTime)) // 상영 시간 오름차순 정렬
-                .map(screening -> TimeScheduleDto.of(screening))
-                            .collect(Collectors.toList());
-    }
-
 }

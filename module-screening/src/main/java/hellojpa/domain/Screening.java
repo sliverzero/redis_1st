@@ -3,6 +3,7 @@ package hellojpa.domain;
 import hellojpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalTime;
 

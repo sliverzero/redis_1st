@@ -2,19 +2,18 @@ package hellojpa.dto;
 
 import hellojpa.domain.Screening;
 import hellojpa.domain.Theater;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class TheaterScheduleDto {
 
-    private String theaterName;
+    private String name; // 상영관 이름
     private List<TimeScheduleDto> timeScheduleDtoList;
 
     public static TheaterScheduleDto of(Theater theater, List<TimeScheduleDto> timeSchedule){

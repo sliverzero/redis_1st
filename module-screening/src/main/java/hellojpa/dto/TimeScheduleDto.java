@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
+import java.util.Objects;
 
 @Getter
 @NoArgsConstructor
@@ -16,10 +17,8 @@ public class TimeScheduleDto {
     private LocalTime startTime;
     private LocalTime endTime;
 
-    public static TimeScheduleDto of(Screening screening) {
-        LocalTime startTime = screening.getStartTime();
-        LocalTime endTime = startTime.plusMinutes(screening.getMovie().getRunningTime());
-
-        return new TimeScheduleDto(startTime, endTime);
+    public TimeScheduleDto(LocalTime startTime, int runningTime) {
+        this.startTime = startTime;
+        this.endTime = startTime.plusMinutes(runningTime);  // endTime 계산
     }
 }
