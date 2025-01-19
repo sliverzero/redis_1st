@@ -18,10 +18,23 @@ services:
     networks:
       - my-network
 
+  redis:
+    image: redis:latest                     # Redis 이미지를 사용
+    container_name: skillUp-redis
+    ports:
+      - "6379:6379"                             # Redis 기본 포트 매핑
+    volumes:
+      - redis-data:/data                        # Redis 데이터 저장용 볼륨
+    command: [ "redis-server", "--appendonly", "yes" ]
+    networks:
+      - my-network
+
 networks:
   my-network:
     driver: bridge
 
 volumes:
   mysql-data:
+    driver: local
+  redis-data:
     driver: local
