@@ -12,6 +12,7 @@ dependencies {
     api 'com.github.ben-manes.caffeine:caffeine:3.1.7'
     api 'org.springframework.boot:spring-boot-starter-cache'
     api 'org.springframework.boot:spring-boot-starter-data-redis'
+    api 'org.redisson:redisson-spring-boot-starter:3.21.1'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api "com.fasterxml.jackson.core:jackson-databind"
 
