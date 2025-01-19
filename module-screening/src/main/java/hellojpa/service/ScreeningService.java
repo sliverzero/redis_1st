@@ -8,6 +8,7 @@ import hellojpa.dto.TheaterScheduleDto;
 import hellojpa.dto.TimeScheduleDto;
 import hellojpa.repository.ScreeningRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,6 +21,8 @@ public class ScreeningService {
 
     private final ScreeningRepository screeningRepository;
 
+    @Cacheable(value = "screenings", key = "#searchCondition.title == null ? 'EMPTY' : #searchCondition.title " +
+            "+ (#searchCondition.genre == null ? 'EMPTY' : #searchCondition.genre)")
     public List<ScreeningDto> findCurrentScreenings(LocalDate todayDate, SearchCondition searchCondition) {
 
         List<ScreeningDto> screeningDtos = screeningRepository.findCurrentScreenings(todayDate, searchCondition);
@@ -34,7 +37,8 @@ public class ScreeningService {
 
         for (ScreeningDto screeningDto : screeningDtos) {
             // 상영관 스케줄 조회
-            List<TheaterScheduleDto> theaterScheduleDtos = screeningRepository.findTheaterScheduleDtoByMovieTitle(screeningDto.getTitle());
+            List<TheaterScheduleDto> theaterScheduleDtos =
+                    screeningRepository.findTheaterScheduleDtoByMovieTitle(screeningDto.getTitle());
 
             // 상영관마다 상영 스케줄 삽입
             Map<String, List<TimeScheduleDto>> theaterSchedulesMap = new HashMap<>();
