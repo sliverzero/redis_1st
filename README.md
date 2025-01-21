@@ -20,4 +20,6 @@
   * 1:N 관계 -> 하나의 상영관은 여러 개의 좌석을 갖습니다.
 
 ### 성능 테스트 보고서
+* 캐싱할 데이터: API 응답 형식인 **ScreeningDto**
+
 [성능 테스트 보고서](https://alkaline-wheel-96f.notion.site/180e443fee6880caac97deb79ed284d9)
