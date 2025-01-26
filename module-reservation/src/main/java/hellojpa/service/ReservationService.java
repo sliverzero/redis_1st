@@ -1,5 +1,6 @@
 package hellojpa.service;
 
+import hellojpa.DistributedLock;
 import hellojpa.domain.*;
 import hellojpa.dto.ReservationCompletedMessageDto;
 import hellojpa.dto.ReservationDto;
@@ -31,6 +32,7 @@ public class ReservationService {
     private final EventPublisher eventPublisher;
 
     @Transactional
+    @DistributedLock(key = "#reservationDto.screeningId")
     public void reserveSeats(ReservationDto reservationDto) {
 
         // 1. 사용자와 상영 정보 조회

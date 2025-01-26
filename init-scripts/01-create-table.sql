@@ -42,8 +42,11 @@ CREATE TABLE seat (
     seat_row VARCHAR(255) NOT NULL,
     seat_column INT NOT NULL,
     reservation_id BIGINT,
+    version BIGINT,
     CONSTRAINT FK_seat_theater FOREIGN KEY (theater_id) REFERENCES theater (theater_id),  -- theater_id 외래키
     CONSTRAINT FK_seat_reservation FOREIGN KEY (reservation_id) REFERENCES reservation (reservation_id)  -- reservation_id 외래키
 )CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ALTER TABLE seat MODIFY COLUMN version BIGINT NOT NULL DEFAULT 0;
 
 INSERT INTO users (name, age) VALUES ("123", 29);
