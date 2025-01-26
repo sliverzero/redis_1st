@@ -11,7 +11,7 @@ export default function () {
   const payload = JSON.stringify({
     userId: 1,
     screeningId: 1,
-    reservationSeatsId: [8, 9],
+    reservationSeatsId: [4, 5],
   });
 
   const params = {

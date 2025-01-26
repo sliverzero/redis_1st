@@ -12,12 +12,15 @@ import hellojpa.repository.SeatRepository;
 import hellojpa.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,47 +33,68 @@ public class ReservationService {
     private final SeatRepository seatRepository;
     private final ReservationRepository reservationRepository;
     private final EventPublisher eventPublisher;
+    private final RedissonClient redissonClient;
 
     @Transactional
-    @DistributedLock(key = "#reservationDto.screeningId")
+    //@DistributedLock(key = "#reservationDto.screeningId")
     public void reserveSeats(ReservationDto reservationDto) {
 
-        // 1. 사용자와 상영 정보 조회
-        Users user = userRepository.findById(reservationDto.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        Screening screening = screeningRepository.findById(reservationDto.getScreeningId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상영 정보입니다."));
+        String lockKey = "lock:screening:" + reservationDto.getScreeningId(); // 락 키
+        RLock lock = redissonClient.getLock(lockKey);  // Redisson에서 락 객체 생성
 
-        // 2. 관람 등급 확인 - 19세 미만은 AGE_19, RESTRICTED 예매 불가능
-        validateAgeRestriction(user, screening);
+        try {
+            // waitTime 동안 락을 시도하고, leaseTime 동안 락을 유지
+            boolean isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);  // 10초 동안 락을 기다리고, 30초 동안 락을 유지
 
-        // 3. 좌석 정보 조회 및 검증
-        //log.info("예약좌석 사이즈: {}", reservationDto.getReservationSeatsId().size());
-        //List<Seat> seats = seatRepository.findAllById(reservationDto.getReservationSeatsId());
-        //List<Seat> seats = seatRepository.findByIdWithPessimisticLock(reservationDto.getReservationSeatsId());
-        List<Seat> seats = seatRepository.findByIdWithOptimisticLock(reservationDto.getReservationSeatsId());
-        validateSeats(seats);
+            if (isLocked) {
+                try {
+                    // 1. 사용자와 상영 정보 조회
+                    Users user = userRepository.findById(reservationDto.getUserId())
+                            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                    Screening screening = screeningRepository.findById(reservationDto.getScreeningId())
+                            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상영 정보입니다."));
 
-        // 4. 좌석 예약 가능 여부 검증 - 예매된 좌석 예매 불가능
-        validateSeatAvailability(seats, screening);
+                    // 2. 관람 등급 확인 - 19세 미만은 AGE_19, RESTRICTED 예매 불가능
+                    validateAgeRestriction(user, screening);
 
-        // 5. 예약 저장
-        Reservation reservation = new Reservation(user, screening);
-        reservationRepository.save(reservation);
+                    // 3. 좌석 정보 조회 및 검증
+                    List<Seat> seats = seatRepository.findByIdWithOptimisticLock(reservationDto.getReservationSeatsId());
+                    validateSeats(seats);
 
-        // 6. 좌석에 예약 정보를 설정
-        for (Seat seat : seats) {
-            seat.saveReservation(reservation);  // Seat에 예약 정보를 설정
-            seatRepository.save(seat);  // Seat 정보 업데이트 (reservation_id가 설정됨)
+                    // 4. 좌석 예약 가능 여부 검증 - 예매된 좌석 예매 불가능
+                    validateSeatAvailability(seats, screening);
+
+                    // 5. 예약 저장
+                    Reservation reservation = new Reservation(user, screening);
+                    reservationRepository.save(reservation);
+
+                    // 6. 좌석에 예약 정보를 설정
+                    for (Seat seat : seats) {
+                        seat.saveReservation(reservation);  // Seat에 예약 정보를 설정
+                        seatRepository.save(seat);  // Seat 정보 업데이트 (reservation_id가 설정됨)
+                    }
+
+                    // 7. 메시지
+                    eventPublisher.publish(new ReservationCompletedMessageDto(user.getId(), "영화 제목: " + screening.getMovie().getTitle() +
+                            " 상영관: " + screening.getTheater().getName() + " 상영 시작 시간: " + screening.getStartTime() +
+                            " 상영 끝나는 시간: " + screening.getStartTime().plusMinutes(screening.getMovie().getRunningTime()) +
+                            " 선택한 좌석: " + seats.stream()
+                            .map(seat -> seat.getSeatRow() + seat.getSeatColumn()) // 행과 열을 결합
+                            .collect(Collectors.toList()) + "좌석 예약이 완료되었습니다."));
+
+                } finally {
+                    // 락 해제
+                    lock.unlock();
+                }
+            } else {
+                log.error("분산 락을 획득할 수 없습니다. 나중에 다시 시도해 주세요.");
+                throw new SeatReservationException("분산 락을 획득할 수 없습니다. 나중에 다시 시도해 주세요.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("분산 락 획득 중 오류 발생", e);
+            throw new SeatReservationException("분산 락 획득 중 오류 발생", e);
         }
-
-        // 7. 메시지
-        eventPublisher.publish(new ReservationCompletedMessageDto(user.getId(), "영화 제목: " + screening.getMovie().getTitle() +
-                " 상영관: " + screening.getTheater().getName() + " 상영 시작 시간: " + screening.getStartTime() +
-                " 상영 끝나는 시간: " + screening.getStartTime().plusMinutes(screening.getMovie().getRunningTime()) +
-                " 선택한 좌석: " + seats.stream()
-                .map(seat -> seat.getSeatRow() + seat.getSeatColumn()) // 행과 열을 결합
-                .collect(Collectors.toList()) + "좌석 예약이 완료되었습니다."));
     }
 
     private void validateAgeRestriction(Users user, Screening screening) {
