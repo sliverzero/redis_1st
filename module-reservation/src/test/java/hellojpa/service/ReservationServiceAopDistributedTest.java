@@ -7,17 +7,18 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @SpringBootTest
-class ReservationServiceDistributedTest {
+class ReservationServiceAopDistributedTest {
 
     @Autowired
     private ReservationService reservationService;
@@ -28,9 +29,6 @@ class ReservationServiceDistributedTest {
     @PersistenceContext
     private EntityManager em;
 
-    @Autowired
-    private RedissonClient redissonClient;  // RedissonClient 주입
-
     @Test
     public void testConcurrentSeatReservation() throws InterruptedException {
         // 10명이 동시에 예매하려고 시도할 때 그 중 한 명만 예매 성공
@@ -40,37 +38,21 @@ class ReservationServiceDistributedTest {
         ExecutorService executor = Executors.newFixedThreadPool(userCount);
 
         for (int i = 0; i < userCount; i++) {
+
             executor.submit(new Callable<Void>() {
                 @Override
                 @Transactional
                 public Void call() throws Exception {
                     try {
-                        // 락을 위한 키 정의
-                        String lockKey = "lock:screening:1"; // 예시로 screeningId=1을 사용
-                        RLock lock = redissonClient.getLock(lockKey);  // Redisson에서 락 객체 생성
+                        ReservationDto reservationDto = new ReservationDto();
+                        reservationDto.setUserId(1L);
+                        reservationDto.setScreeningId(1L);
+                        reservationDto.setReservationSeatsId(List.of(8L));
 
-                        // 락을 획득하고 예매 시도
-                        boolean isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);  // 10초 동안 락을 기다리고, 30초 동안 락을 유지
-
-                        if (isLocked) {
-                            try {
-                                // 예약 DTO 준비
-                                ReservationDto reservationDto = new ReservationDto();
-                                reservationDto.setUserId(1L);
-                                reservationDto.setScreeningId(1L);
-                                reservationDto.setReservationSeatsId(List.of(1L));
-
-                                // 예약 시도
-                                reservationService.reserveSeats(reservationDto);
-                            } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                            } finally {
-                                // 락 해제
-                                lock.unlock();
-                            }
-                        } else {
-                            System.out.println("락을 획득할 수 없습니다.");
-                        }
+                        // 예약 시도
+                        reservationService.reserveSeats(reservationDto);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
                     } finally {
                         latch.countDown();
                     }
