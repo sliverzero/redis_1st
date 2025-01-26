@@ -1,11 +1,15 @@
 package hellojpa.domain;
 
 import hellojpa.BaseEntity;
+import hellojpa.exception.SeatReservationException;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Seat extends BaseEntity {
 
     @Id
@@ -23,4 +27,11 @@ public class Seat extends BaseEntity {
     @Column(name = "seat_column", nullable = false)
     private int seatColumn; // 상영관 열(ex. 1, 2...)
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id", nullable = true)
+    private Reservation reservation;
+
+    public void saveReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
 }
