@@ -45,7 +45,8 @@ public class ReservationService {
         // 3. 좌석 정보 조회 및 검증
         //log.info("예약좌석 사이즈: {}", reservationDto.getReservationSeatsId().size());
         //List<Seat> seats = seatRepository.findAllById(reservationDto.getReservationSeatsId());
-        List<Seat> seats = seatRepository.findByIdWithPessimisticLock(reservationDto.getReservationSeatsId());
+        //List<Seat> seats = seatRepository.findByIdWithPessimisticLock(reservationDto.getReservationSeatsId());
+        List<Seat> seats = seatRepository.findByIdWithOptimisticLock(reservationDto.getReservationSeatsId());
         validateSeats(seats);
 
         // 4. 좌석 예약 가능 여부 검증 - 예매된 좌석 예매 불가능

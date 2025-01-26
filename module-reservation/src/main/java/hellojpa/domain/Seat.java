@@ -5,7 +5,6 @@ import hellojpa.exception.SeatReservationException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -30,6 +29,9 @@ public class Seat extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id", nullable = true)
     private Reservation reservation;
+
+    @Version
+    private Long version;
 
     public void saveReservation(Reservation reservation) {
         this.reservation = reservation;
