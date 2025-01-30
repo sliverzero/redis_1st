@@ -1,7 +1,7 @@
 package hellojpa.facade;
 
 import hellojpa.domain.Seat;
-import hellojpa.dto.ReservationDto;
+import hellojpa.dto.ReservationRequestDto;
 import hellojpa.repository.ReservationRepository;
 import hellojpa.service.ReservationService;
 import jakarta.persistence.EntityManager;
@@ -18,7 +18,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Transactional
 class OptimisticLockFacadeTest {
@@ -47,13 +46,10 @@ class OptimisticLockFacadeTest {
                 @Transactional
                 public Void call() throws Exception {
                     try {
-                        ReservationDto reservationDto = new ReservationDto();
-                        reservationDto.setUserId(1L);
-                        reservationDto.setScreeningId(1L);
-                        reservationDto.setReservationSeatsId(List.of(1L));
+                        ReservationRequestDto reservationRequestDto = new ReservationRequestDto(1L, 1L, List.of(1L));
 
                         // 예약 시도
-                        reservationService.reserveSeats(reservationDto);
+                        reservationService.reserveSeats(reservationRequestDto);
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                     } finally {

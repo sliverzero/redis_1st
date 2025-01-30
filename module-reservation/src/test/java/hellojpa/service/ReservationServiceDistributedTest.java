@@ -1,7 +1,7 @@
 package hellojpa.service;
 
 import hellojpa.domain.Seat;
-import hellojpa.dto.ReservationDto;
+import hellojpa.dto.ReservationRequestDto;
 import hellojpa.repository.ReservationRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -55,13 +55,10 @@ class ReservationServiceDistributedTest {
                         if (isLocked) {
                             try {
                                 // 예약 DTO 준비
-                                ReservationDto reservationDto = new ReservationDto();
-                                reservationDto.setUserId(1L);
-                                reservationDto.setScreeningId(1L);
-                                reservationDto.setReservationSeatsId(List.of(1L));
+                                ReservationRequestDto reservationRequestDto = new ReservationRequestDto(1L, 1L, List.of(1L));
 
                                 // 예약 시도
-                                reservationService.reserveSeats(reservationDto);
+                                reservationService.reserveSeats(reservationRequestDto);
                             } catch (Exception e) {
                                 System.out.println(e.getMessage());
                             } finally {

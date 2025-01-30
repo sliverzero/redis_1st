@@ -1,6 +1,6 @@
 package hellojpa.controller;
 
-import hellojpa.dto.ReservationDto;
+import hellojpa.dto.ReservationRequestDto;
 import hellojpa.dto.ScreeningDto;
 import hellojpa.dto.SearchCondition;
 import hellojpa.service.ReservationService;
@@ -31,7 +31,7 @@ public class ScreeningController {
     }
 
     @PostMapping("/reservation/movie")
-    public ResponseEntity<String> reserveSeats(@Valid @RequestBody ReservationDto requestDto) {
+    public ResponseEntity<String> reserveSeats(@Valid @RequestBody ReservationRequestDto requestDto) {
         reservationService.reserveSeats(requestDto);
         return ResponseEntity.ok("좌석 예약이 완료되었습니다.");
     }
