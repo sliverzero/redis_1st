@@ -3,6 +3,7 @@ dependencies {
     implementation project(':module-common')
     implementation project(':module-screening')
     implementation project(':module-reservation')
+    implementation project(':module-movie')
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

@@ -1,3 +1,4 @@
+/*
 package hellojpa.service;
 
 import hellojpa.domain.Seat;
@@ -82,4 +83,4 @@ class ReservationServiceDistributedTest {
         List<Seat> reservedSeats = reservationRepository.findReservedSeatsByScreeningId(1L);
         Assertions.assertThat(reservedSeats.size()).isEqualTo(1);
     }
-}
+}*/

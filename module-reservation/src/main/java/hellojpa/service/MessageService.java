@@ -12,11 +12,14 @@ public class MessageService {
 
     @EventListener
     public void handleReservationCompletedEvent(ReservationCompletedMessageDto event) {
+        if (event == null) {
+            throw new IllegalArgumentException("Event cannot be null");
+        }
         sendMessageAsync(event);
     }
 
     @Async
-    private void sendMessageAsync(ReservationCompletedMessageDto event) {
+    void sendMessageAsync(ReservationCompletedMessageDto event) {
         try {
             Thread.sleep(500); // 비지니스 로직 처리 + 메시지 발송
             log.info("[MessageService] UserId: {} - {}", event.getUserId(), event.getMessage());
