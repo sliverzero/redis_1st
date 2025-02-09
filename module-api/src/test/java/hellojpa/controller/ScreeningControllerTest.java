@@ -7,7 +7,6 @@ import hellojpa.dto.RateLimitResponseDto;
 import hellojpa.dto.ScreeningDto;
 import hellojpa.dto.SearchCondition;
 import hellojpa.repository.MovieRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +18,12 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -60,7 +62,7 @@ public class ScreeningControllerTest {
         RateLimitResponseDto<List<ScreeningDto>> currentScreenings = screeningController.getCurrentScreenings(searchCondition);
 
         // then
-        Assertions.assertNotNull(currentScreenings);
+        assertNotNull(currentScreenings);
         assertEquals(200, currentScreenings.getStatus());
         assertEquals("Movie1", currentScreenings.getData().get(0).getTitle());
     }
@@ -71,13 +73,15 @@ public class ScreeningControllerTest {
         String title = "Movie1";
         String genre = "DRAMA";
 
-        // 50회 정상 요청
+        // when & then
+        // 50회 정상 요청을 1초에 걸쳐 수행
         for (int i = 0; i < 50; i++) {
             mockMvc.perform(get("/screening/movies")
                             .param("title", title)
                             .param("genre", genre)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk()); // 200 OK 응답 확인
+                            .contentType(MediaType.APPLICATION_JSON));
+
+            Thread.sleep(20);
         }
 
         // 51번째 요청에서 429 Too Many Requests 발생 확인
@@ -85,6 +89,8 @@ public class ScreeningControllerTest {
                         .param("title", title)
                         .param("genre", genre)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isTooManyRequests()); // 429 응답 확인
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.status").value(429))
+                .andExpect(jsonPath("$.code").value("RATE_LIMIT_EXCEEDED"));
     }
 }

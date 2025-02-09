@@ -1,90 +1,170 @@
-/*
 package hellojpa.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hellojpa.dto.RateLimitResponseDto;
 import hellojpa.dto.ReservationRequestDto;
-import hellojpa.service.ReservationService;
-import hellojpa.service.ReservationTransactionalService;
+import hellojpa.service.ReservationRateLimitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
+@Transactional
 class ReservationControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @LocalServerPort
+    private int port;
 
     @Autowired
-    private ReservationService reservationService;
+    private ObjectMapper objectMapper;
 
-    @Mock
-    private RedissonClient redissonClient;  // RedissonClient 목킹
+    @Autowired
+    private ReservationRateLimitService reservationRateLimitService;
 
-    @Mock
-    private ReservationTransactionalService reservationTransactionalService;  // ReservationTransactionalService 목킹
+    private WebTestClient webTestClient;
+    private final int THREAD_COUNT = 10; // 동시에 요청할 스레드 개수
+    private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT);
 
     @BeforeEach
     void setUp() {
-        // 실제 의존성 주입을 위한 설정
-        reservationService = new ReservationService(reservationTransactionalService, redissonClient);
+        this.webTestClient = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+        //reservationRateLimitService.resetAllLimits();
     }
 
     @Test
-    void reserveSeats_ShouldReturnOk() throws Exception {
+    void 예약_정상처리() {
         // Given
-        ReservationRequestDto requestDto = new ReservationRequestDto(1L, 2L, List.of(1L, 2L));
+        ReservationRequestDto requestDto1 = new ReservationRequestDto(1L, 1L, List.of(14L, 15L));
 
-        // Redisson의 락을 목킹
-        RLock mockLock = mock(RLock.class);
-        when(redissonClient.getLock(anyString())).thenReturn(mockLock);
-        when(mockLock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
+        // When
+        var response = webTestClient.post()
+                .uri("/reservation/movie")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestDto1)
+                .exchange();
 
-        // When & Then
-        mockMvc.perform(post("/reservation/movie")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"screeningId\":1, \"seats\":2}"))  // JSON 데이터 넣기
-                .andExpect(status().isOk());
-
-        // 예약 처리 메서드가 호출되었는지 확인
-        verify(reservationTransactionalService, times(1)).reservationProcess(any());
-        verify(mockLock, times(1)).unlock();
+        // Then
+        response.expectStatus().isOk()
+                .expectBody(RateLimitResponseDto.class)
+                .value(res -> {
+                    assertThat(res.getStatus()).isEqualTo(200);
+                    assertThat(res.getCode()).isEqualTo("success");
+                    assertThat(res.getMessage()).isEqualTo("요청에 성공했습니다.");
+                });
     }
 
     @Test
-    void reserveSeats_ShouldReturnConflict_WhenLockFails() throws Exception {
+    void 예약_예외처리() {
         // Given
-        ReservationRequestDto requestDto = new ReservationRequestDto(1L, 2L, List.of(1L, 2L));
+        ReservationRequestDto requestDto1 = new ReservationRequestDto(2L, 1L, List.of(1L, 3L));
 
-        // Redisson의 락을 목킹
-        RLock mockLock = mock(RLock.class);
-        when(redissonClient.getLock(anyString())).thenReturn(mockLock);
-        when(mockLock.tryLock(anyLong(), anyLong(), any())).thenReturn(false);
+        // When
+        var response = webTestClient.post()
+                .uri("/reservation/movie")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestDto1)
+                .exchange();
 
-        // When & Then
-        mockMvc.perform(post("/reservation/movie")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"screeningId\":1, \"seats\":2}"))  // JSON 데이터 넣기
-                .andExpect(status().isConflict());  // 409 Conflict로 반환되는지 확인
+        // Then
+        response.expectStatus().isBadRequest()
+                .expectBody(RateLimitResponseDto.class)
+                .value(res -> {
+                    assertThat(res.getStatus()).isEqualTo(400);
+                });
+    }
 
-        // 락을 얻지 못한 경우 예약 처리 메서드는 호출되지 않음
-        verify(reservationTransactionalService, never()).reservationProcess(any());
+    @Test
+    void RateLimit_초과시_예약_차단() {
+        // Given
+        ReservationRequestDto requestDto1 = new ReservationRequestDto(3L, 1L, List.of(1L, 2L));
+        ReservationRequestDto requestDto2 = new ReservationRequestDto(3L, 1L, List.of(3L, 4L, 5L));
+
+
+        webTestClient.post()
+                .uri("/reservation/movie")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestDto1)
+                .exchange();
+
+        // When
+        var response = webTestClient.post()
+                .uri("/reservation/movie")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestDto2)
+                .exchange();
+
+        // Then
+        response.expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
+                .expectBody(RateLimitResponseDto.class)
+                .value(res -> {
+                    assertThat(res.getStatus()).isEqualTo(429);
+                    assertThat(res.getCode()).isEqualTo("RATE_LIMIT_EXCEEDED");
+                });
+    }
+
+    @Test
+    void 동시_예약_테스트() throws InterruptedException, ExecutionException, JsonProcessingException {
+        // Given - 동일한 좌석을 동시에 예약하려는 요청들 생성
+        Long userId = 4L;
+        Long screeningId = 1L;
+        List<Long> seatIds = List.of(25L); // 같은 좌석을 여러 요청이 시도
+
+        List<Callable<WebTestClient.ResponseSpec>> tasks = new ArrayList<>();
+        for (int i = 0; i < THREAD_COUNT; i++) {
+            tasks.add(() -> webTestClient.post()
+                    .uri("/reservation/movie")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(new ReservationRequestDto(userId, screeningId, seatIds))
+                    .exchange());
+        }
+
+        // When - 동시에 실행
+        List<Future<WebTestClient.ResponseSpec>> futures = executorService.invokeAll(tasks);
+
+        // Then - 결과 검증
+        int successCount = 0;
+        int failCount = 0;
+
+        for (Future<WebTestClient.ResponseSpec> future : futures) {
+            WebTestClient.ResponseSpec response = future.get();
+
+            // 서버에서 실제 응답된 Content-Type과 Body를 출력하여 확인
+            String responseBody = response.expectBody(String.class).returnResult().getResponseBody();
+            System.out.println("응답 Body: " + responseBody);
+
+            // JSON 파싱하여 DTO로 변환
+            ObjectMapper objectMapper = new ObjectMapper();
+            RateLimitResponseDto rateLimitResponse = objectMapper.readValue(responseBody, RateLimitResponseDto.class);
+
+            HttpStatus status = HttpStatus.valueOf(rateLimitResponse.getStatus());
+
+            if (status.equals(HttpStatus.OK)) {
+                successCount++;
+            } else {
+                failCount++;
+            }
+        }
+
+        System.out.println("성공한 예약 개수: " + successCount);
+        System.out.println("실패한 예약 개수: " + failCount);
+
+        // 하나 이상의 요청이 성공하고, 일부 요청은 실패해야 함 (좌석 중복 방지 로직이 동작해야 함)
+        assertThat(successCount).isGreaterThan(0);
+        assertThat(failCount).isGreaterThan(0);
     }
 }
-*/
