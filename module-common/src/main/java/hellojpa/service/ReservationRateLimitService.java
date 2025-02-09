@@ -1,38 +1,48 @@
 package hellojpa.service;
 
+import hellojpa.exception.RateLimitExceedException;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ReservationRateLimitService {
 
     private final RedissonClient redissonClient;
+    private final StringRedisTemplate redisTemplate;
 
-    private final String luaScript =
-            "local key = KEYS[1] " +
-                    "local ttl = tonumber(ARGV[1]) " +
-                    "if redis.call('EXISTS', key) == 1 then return 0 end " +
-                    "redis.call('SET', key, 1, 'EX', ttl) " +
-                    "return 1";
+    private static final String RATE_LIMIT_LUA_SCRIPT =
+            "local key = KEYS[1]\n" +
+                    "local ttl = tonumber(redis.call('TTL', key))\n" +
+                    "if ttl > 0 then\n" +
+                    "    return ttl\n" + // TTL이 남아 있으면 반환
+                    "end\n" +
+                    "redis.call('SET', key, 1, 'EX', 300)\n" + //TTL 설정 (5분)
+                    "return 0";
 
-    public boolean isAllowed(Long userId, Long screeningId) {
-        String key = String.format("rate_limit:%d:%d", userId, screeningId);
-        RScript script = redissonClient.getScript();
-
-        List<Object> keys = Collections.singletonList(key);
-        List<Object> args = Collections.singletonList(300); // TTL 5분 (300초)
+    public void enforceRateLimit(long userId, long screeningId) { // null 차단
+        String rateLimitKey = "ratelimit:user:" + userId + ":screening:" + screeningId;
 
         // Lua 스크립트 실행
-        Long result = script.eval(RScript.Mode.READ_WRITE, luaScript, RScript.ReturnType.INTEGER, keys, args.toArray());
+        Long ttl = redissonClient.getScript().eval(
+                RScript.Mode.READ_WRITE,
+                RATE_LIMIT_LUA_SCRIPT,
+                RScript.ReturnType.INTEGER,
+                Collections.singletonList(rateLimitKey)
+        );
 
-        System.out.println("Lua Script Result: " + result); // 디버깅 메시지
-
-        return result != 0;
+        // TTL이 0보다 크다면 요청을 차단
+        if (ttl > 0) {
+            throw new RateLimitExceedException(
+                    "같은 시간대의 영화는 5분에 1번만 예약할 수 있습니다."
+            );
+        }
     }
 }
