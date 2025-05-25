@@ -30,8 +30,3 @@
 * 캐싱할 데이터: API 응답 형식인 **ScreeningDto**
 
 [성능 테스트 보고서](https://alkaline-wheel-96f.notion.site/180e443fee6880caac97deb79ed284d9)
-
-* leaseTime: 응답시간이 10초 정도 걸려 10초로 설정했습니다.
-* waitTime: 설정한 leaseTime보다 좀 더 기다릴 수 있도록 설정했습니다.
-
-[분산 락 테스트 보고서](https://alkaline-wheel-96f.notion.site/187e443fee68800cbbcef4041b8d55b8)
